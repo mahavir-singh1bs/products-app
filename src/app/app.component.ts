@@ -1,11 +1,10 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, Signal, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterOutlet } from '@angular/router';
 import { ProductListComponent } from "./product-list/product-list.component";
 import { CopyrightDirective } from './copyright.directive';
 import { APP_SETTINGS, appSettings } from './app.settings';
 import { Observable } from 'rxjs';
-import { KeyLoggerComponent } from './key-logger/key-logger.component';
 
 @Component({
   selector: 'app-root',
@@ -13,8 +12,7 @@ import { KeyLoggerComponent } from './key-logger/key-logger.component';
     RouterOutlet,
     FormsModule,
     ProductListComponent,
-    CopyrightDirective,
-    KeyLoggerComponent,
+    CopyrightDirective
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
@@ -23,7 +21,9 @@ import { KeyLoggerComponent } from './key-logger/key-logger.component';
 export class AppComponent {
   settings = inject(APP_SETTINGS);
   name = 'Alice';
-  title = '';
+  title: Signal<string> = signal('');
+  currentDate = signal(new Date());
+
   title$ = new Observable(observer => {
     setInterval(() => {
       observer.next('sampe');
@@ -32,11 +32,13 @@ export class AppComponent {
 
   constructor() {
     this.title$.subscribe(this.setTitle);
+    this.title = computed(() => {
+      return `${this.settings.title} (${this.currentDate()})`;
+    })
   }
 
   private setTitle = () => {
-    const timestamp = new Date();
-    this.title = `${this.settings.title} (${timestamp})`;
+    this.currentDate.set(new Date());
   };
 
   private onComplete() {
