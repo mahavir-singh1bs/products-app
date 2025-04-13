@@ -6,7 +6,7 @@
 <!-- * * * * * * * * * Delete the template below * * * * * * * * * -->
 <!-- * * * * * * * to get started with your project! * * * * * * * -->
 <!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
-
+<header>{{title}}</header>
 <main class="main">
   <div class="content">
     <app-product-list />
@@ -23,3 +23,4 @@
 
 <footer appCopyright> - v{{settings.version}}</footer>
 <router-outlet />
+<app-key-logger [numeric]="true"></app-key-logger>
