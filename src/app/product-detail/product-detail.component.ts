@@ -1,53 +1,45 @@
-import { CurrencyPipe, KeyValuePipe, LowerCasePipe, } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import {
-  ChangeDetectionStrategy,
   Component,
   input,
-  OnChanges,
-  OnDestroy,
-  OnInit,
   output,
-  SimpleChanges,
-  ViewEncapsulation,
+  OnChanges
 } from '@angular/core';
 import { Product } from '../product';
+import { Observable } from 'rxjs';
+import { ProductsService } from '../products.service';
+import { AuthService } from '../auth.service';
 
 @Component({
   selector: 'app-product-detail',
-  imports: [CurrencyPipe, KeyValuePipe, LowerCasePipe],
+  imports: [CommonModule],
   templateUrl: './product-detail.component.html',
-  styleUrl: './product-detail.component.css',
-  encapsulation: ViewEncapsulation.Emulated,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  styleUrl: './product-detail.component.css'
 })
-export class ProductDetailComponent implements OnInit, OnDestroy, OnChanges {
-  product = input<Product>();
-  added = output<Product>();
+export class ProductDetailComponent implements OnChanges {
+  id = input<number>();
+  added = output();
+  deleted = output();
+  product$: Observable<Product> | undefined;
 
-  constructor() {
-    console.log('Product: ', this.product());
-  }
-
-  ngOnInit(): void {
-    console.log('Product: ', this.product());
-  }
-
-  ngOnDestroy(): void {
-
-  }
-
-  ngOnChanges(changes: SimpleChanges): void {
-    const product = changes['product'];
-    if (!product.isFirstChange()) {
-      const oldValue = product.previousValue;
-      const newValue = product.currentValue;
-      console.log('Old value', oldValue);
-      console.log('New value', newValue);
-    }
-  }
+  constructor(private productService: ProductsService, public authService: AuthService) { }
 
   addToCart() {
-    this.added.emit(this.product()!);
+    this.added.emit();
+  }
+  
+  ngOnChanges(): void {
+    this.product$ = this.productService.getProduct(this.id()!);
   }
 
+  changePrice(product: Product, price: string) {
+    this.productService.updateProduct(product.id, Number(price)).subscribe();
+  }
+
+  remove(product: Product) {
+    this.productService.deleteProduct(product.id).subscribe(() => {
+      this.deleted.emit();
+    });
+  }
+  
 }

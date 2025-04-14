@@ -13,10 +13,9 @@ export class SortPipe implements PipeTransform {
           return -1;
         } else if (b[args] < a[args]) {
           return 1;
-        } else {
-          return 0;
         }
-      })
+        return 0;
+      });
     }
     return [];
   }
