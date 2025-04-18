@@ -11,10 +11,10 @@ import { AuthComponent } from './auth/auth.component';
     RouterLink,
     RouterLinkActive,
     CopyrightDirective,
-    AuthComponent
+    AuthComponent,
   ],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  styleUrl: './app.component.css',
 })
 export class AppComponent {
   settings = inject(APP_SETTINGS);

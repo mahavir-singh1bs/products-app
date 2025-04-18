@@ -1,7 +1,7 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpErrorResponse, HttpStatusCode } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Product } from './product';
-import { Observable, map, of, tap } from 'rxjs';
+import { Observable, map, of, tap, retry, catchError, throwError } from 'rxjs';
 import { APP_SETTINGS } from './app.settings';
 
 @Injectable({
@@ -18,10 +18,14 @@ export class ProductsService {
       const options = new HttpParams().set('limit', limit || 10);
       return this.http.get<Product[]>(this.productsUrl, {
         params: options
-      }).pipe(map(products => {
-        this.products = products;
-        return products;
-      }));
+      }).pipe(
+        map(products => {
+          this.products = products;
+          return products;
+        }),
+        retry(2),
+        catchError(this.handleError)
+      );
     }
     return of(this.products);
   }
@@ -33,23 +37,27 @@ export class ProductsService {
 
   addProduct(newProduct: Partial<Product>): Observable<Product> {
     return this.http.post<Product>(this.productsUrl, newProduct).pipe(
-      map(product => {
+      map((product) => {
         this.products.push(product);
         return product;
-      })
+      }),
+      catchError(this.handleError)
     );
   }
 
   updateProduct(id: number, price: number): Observable<Product> {
-    return this.http.patch<Product>(`${this.productsUrl}/${id}`, {
-      price
-    }).pipe(
-      map(product => {
-        const index = this.products.findIndex(p => p.id === id);
-        this.products[index].price = price;
-        return product;
+    return this.http
+      .patch<Product>(`${this.productsUrl}/${id}`, {
+        price,
       })
-    );
+      .pipe(
+        map((product) => {
+          const index = this.products.findIndex((p) => p.id === id);
+          this.products[index].price = price;
+          return product;
+        }),
+        catchError(this.handleError)
+      );
   }
 
   deleteProduct(id: number): Observable<void> {
@@ -57,8 +65,27 @@ export class ProductsService {
       tap(() => {
         const index = this.products.findIndex(p => p.id === id);
         this.products.splice(index, 1);
-      })
+      }),
+      catchError(this.handleError)
     );
   }
 
+  private handleError(error: HttpErrorResponse) {
+    let message = '';
+    switch (error.status) {
+      case 0:
+        message = 'Client error';
+        break;
+      case HttpStatusCode.InternalServerError:
+        message = 'Server error';
+        break;
+      case HttpStatusCode.BadRequest:
+        message = 'Request Error';
+        break;
+      default:
+        message = 'Unknown error';
+    }
+    console.error(message, error.error);
+    return throwError(() => error);
+  }
 }
