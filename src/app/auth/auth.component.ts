@@ -1,9 +1,10 @@
 import { Component } from '@angular/core';
+import { MatButton } from '@angular/material/button';
 import { AuthService } from '../auth.service';
 
 @Component({
   selector: 'app-auth',
-  imports: [],
+  imports: [MatButton],
   templateUrl: './auth.component.html',
   styleUrl: './auth.component.css'
 })
@@ -13,7 +14,7 @@ export class AuthComponent {
   login() {
     this.authService.login('david_r', '3478*#54').subscribe();
   }
-  
+
   logout() {
     this.authService.logout();
   }
